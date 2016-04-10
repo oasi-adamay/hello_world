@@ -9,6 +9,8 @@
 int _tmain(int argc, _TCHAR* argv[])
 {
 	printf("hello world\n");
+//	hogehoge
+
 	return 0;
 }
 
