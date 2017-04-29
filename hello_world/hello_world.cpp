@@ -1,16 +1,18 @@
-﻿// hello_world.cpp : コンソール アプリケーションのエントリ ポイントを定義します。
-//
-
-
+﻿#if 0
 #include <stdio.h>
-
 
 int main(int argc, char* argv[])
 {
 	printf("hello world\n");
-	printf("develop\n");
-	//	hogehoge
-
 	return 0;
 }
+#else
+#include <iostream>
+
+int main(int argc, char* argv[])
+{
+	std::cout << "hello world" << std::endl;
+	return 0;
+}
+#endif
 

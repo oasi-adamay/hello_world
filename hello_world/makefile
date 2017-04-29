@@ -1,86 +1,62 @@
-#
-# Makefile
-#
-BINDIR := ./bin
-LIBDIR := ./lib
-OBJDIR := ./obj
-INCDIR := ./include
+#==============================================================================
+# makefile
 
 
-CXX := clang
-LINK := llvm-link
-ifeq ($(OS),Windows_NT)
-AR := llvm-ar
-endif
-ARFLAGS := rv
+#------------------------------------------------------------------------------
+# source & target
 
+# カレントディレクトの*.cppをbuid対象にする
 SRCS = $(wildcard *.cpp)
-OBJS += $(patsubst %.cpp, %.o ,$(filter %.cpp,$(notdir $(SRCS))))
-OBJS += $(patsubst %.c, %.o ,$(filter %.c,$(notdir $(SRCS))))
-DEPENDS = $(OBJS:.o=.d)
 
-CXXFLAGS = --std=c++14
-CXXFLAGS += -D"_CRT_SECURE_NO_WARNINGS"
-CXXFLAGS += -I$(INCDIR)
-#CXXFLAGS += -g -O0 
-CXXFLAGS += -O3 
-#CXXFLAGS += -Wall
-#CXXFLAGS = -v
-
-
+# カレントディレクト名をターゲット名称にする。
 ifeq ($(OS),Windows_NT)
-LINKFLAGS =
-TARGET = $(BINDIR)/hello.exe
-LIBEXT := lib
+TARGET = $(notdir $(CURDIR)).exe
 else
-LINKFLAGS = -lstdc++
-LINKFLAGS += -lpthread
-TARGET = $(BINDIR)/hello
-LIBEXT := a
+TARGET = $(notdir $(CURDIR))
 endif
 
+OBJS 	= $(patsubst %.cpp,%.o,$(SRCS))
+DEPENDS	= $(patsubst %.cpp,%.d,$(SRCS))
 
+#------------------------------------------------------------------------------
+# tool chain & options
 
-all: build 
+CC = clang
+CFLAGS = -Wall -std=c++14
+#CFLAGS += -ferror-limit=1
+#CFLAGS += -v
+
+ifeq ($(OS),Windows_NT)
+else
+CFLAGS += -stdlib=libc++
+endif
+
+#------------------------------------------------------------------------------
+# phony command
+.PHONY: all
+all:	build
 
 .PHONY: build
-build:	check $(TARGET)
-
-
-.PHONY: run
-run:	build
-	$(TARGET)
+build:	$(TARGET) 	
 
 .PHONY: clean
 clean:
-	$(RM) $(TARGET) $(OBJS) $(LIBS) $(DEPENDS)
+	rm -f $(TARGET) $(DEPENDS) $(OBJS)
 
-.PHONY: check 
-check:
-ifeq ($(OS),Windows_NT)
-#	@[ -d $(LIBDIR) ] || mkdir $(subst /,\,$(LIBDIR))
-	@[ -d $(BINDIR) ] || mkdir $(subst /,\,$(BINDIR))
-#	@[ -d $(OBJDIR) ] || mkdir $(subst /,\,$(OBJDIR))
-else
-#	@[ -d $(LIBDIR) ] || mkdir -p $(LIBDIR)
-	@[ -d $(BINDIR) ] || mkdir -p $(BINDIR)
-#	@[ -d $(OBJDIR) ] || mkdir -p $(OBJDIR)
-endif
+.PHONY: run
+run:	build
+	@$(TARGET)
 
-
-$(TARGET):	$(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $< 
-
-$(LIBS): $(OBJS) 
-	$(AR) $(ARFLAGS) $@ $(OBJS)
-
-%.bc: %.cpp
-	$(CXX) $(CXXFLAGS) -emit-llvm -c $< -o $@
-
+#------------------------------------------------------------------------------
+# make rule
 %.o: %.cpp
-	$(CXX) $(CXXFLAGS)  $< -MQ $@ -MM > $(@:.o=.d)	
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CC) -c $(CFLAGS) $< -o $@
 
+%.d: %.cpp
+	$(CC) -c $(CFLAGS) $< -MQ $(@:.d=.o) -MM > $@
+
+$(TARGET) : $(OBJS)
+	$(CC) $(CFLAGS) $< -o $@
 
 -include $(DEPENDS)
 
