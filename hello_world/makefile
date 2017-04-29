@@ -21,7 +21,7 @@ DEPENDS	= $(patsubst %.cpp,%.d,$(SRCS))
 #------------------------------------------------------------------------------
 # tool chain & options
 
-CC = clang
+CC = clang++
 CFLAGS = -Wall -std=c++14
 #CFLAGS += -ferror-limit=1
 #CFLAGS += -v
@@ -30,6 +30,12 @@ ifeq ($(OS),Windows_NT)
 else
 CFLAGS += -stdlib=libc++
 endif
+
+ifeq ($(OS),Windows_NT)
+else
+LFLAGS = -lstdc++
+endif
+
 
 #------------------------------------------------------------------------------
 # phony command
@@ -45,7 +51,7 @@ clean:
 
 .PHONY: run
 run:	build
-	@$(TARGET)
+	@./$(TARGET)
 
 #------------------------------------------------------------------------------
 # make rule
